@@ -1,23 +1,23 @@
-﻿using System.Security.Cryptography;
+﻿using System.Diagnostics.Tracing;
+using System.Security.Cryptography;
+using Viselica_game;
 
 string[] words ={ "Book", "House", "Apple", "River", "Window" };
+const int MaxLives = 6;
 Random randomaizer = new Random();
 int index = randomaizer.Next(words.Length);
 string word = words[index].ToLower();
 int wrongAttempts = 0;
 DrawHangman(wrongAttempts);
 char[] letters= new char[word.Length];
-for (int i=0; i< word.Length; i++)
-{
-    letters[i] = ('_');
-}
-foreach (char c in letters)
-{
-    Console.Write( c + (" "));
-}
+    for (int i=0; i< word.Length; i++)
+    {
+        letters[i] = ('_');
+    }
+    DisplayWord(letters);
 
 List<char> usedLetters = new List<char>();
-while (wrongAttempts<6 && letters.Contains('_'))
+while (wrongAttempts< MaxLives && letters.Contains('_'))
 {
     Console.WriteLine("\nEnter a letter");
     char symbol = Console.ReadKey().KeyChar;
@@ -31,8 +31,19 @@ while (wrongAttempts<6 && letters.Contains('_'))
         else
         {
             usedLetters.Add(symbol);
-            if (word.Contains(symbol))
+            if (!CheckLetter(word, symbol))
             {
+                Console.WriteLine("\nLetter was not found");
+                DisplayWord(letters);
+                wrongAttempts++;
+                DrawHangman(wrongAttempts);
+                int attempts = MaxLives - wrongAttempts;
+                Console.WriteLine($"You have {attempts} wrong attempts");
+                Console.WriteLine("Used letters " + string.Join(" ", usedLetters));
+            }
+            else
+            {
+                Console.WriteLine("\nLetter was found");
                 for (int i = 0; i < word.Length; i++)
                 {
                     if (word[i] == symbol)
@@ -40,25 +51,8 @@ while (wrongAttempts<6 && letters.Contains('_'))
                         letters[i] = symbol;
                     }
                 }
-                Console.WriteLine("\nLetter was found");
-                foreach (char c in letters)
-                {
-                    Console.Write(c + (" "));
-                }
-               
-            }
-            else
-            {
-                Console.WriteLine("\nLetter was not found");
-                wrongAttempts++;
-                DrawHangman(wrongAttempts);
-                int attempts = 6 - wrongAttempts;
-                Console.WriteLine($"You have {attempts} wrong attempts");
-                foreach (char c in letters)
-                {
-                    Console.Write(c + (" "));
-                }
-                
+                DisplayWord(letters);
+                Console.WriteLine("Used letters " + string.Join(" ", usedLetters));
             }
         }
         
@@ -69,81 +63,47 @@ while (wrongAttempts<6 && letters.Contains('_'))
         Console.WriteLine("\nIt is not a letter idiot");
     }
 }
-if (wrongAttempts >= 6)
-{
-    Console.WriteLine("\nТИ ЛОХ\nThe word is "+ word);
-}
-else
-{
-    Console.WriteLine("\nПеремога!!!!!!!!!!!!!!!!!!!");
-}
+ DisplayResult(wrongAttempts, letters);
 
 
-    void DrawHangman (int wrongAttempts)
+
+   
+
+void DrawHangman(int wrongAttempts)
 {
-    switch (wrongAttempts)
+    
+    if ((wrongAttempts < HangmanStrings.HangmanLength()) && wrongAttempts >= 0)
     {
-        case 0: Console.WriteLine(@"+---+
- |   |
-     |
-     |
-     |
-     |
-=========");
-            break;
-        case 1:
-            Console.WriteLine(@"+---+
- |   |
- O   |
-     |
-     |
-     |
-=========");
-            break;
-        case 2:
-            Console.WriteLine(@"+---+
- |   |
- O   |
- |   |
-     |
-     |
-=========");
-            break;
-        case 3:
-            Console.WriteLine(@"+---+
- |   |
- O   |
-/|   |
-     |
-     |
-=========");
-            break;
-        case 4:
-            Console.WriteLine(@"+---+
- |   |
- O   |
-/|\  |
-     |
-     |
-=========");
-            break;
-        case 5:
-            Console.WriteLine(@"+---+
- |   |
- O   |
-/|\  |
-/    |
-     |
-=========");
-            break;
-        case 6:
-            Console.WriteLine(@"+---+
- |   |
- O   |
-/|\  |
-/ \  |
-     |
-=========");
-            break;
+        Console.WriteLine(HangmanStrings.Hangman(wrongAttempts));
+    }
+    else { Console.WriteLine("ERROR"); }
+}
+    
+ 
+
+void DisplayWord(char[] letters)
+{
+    foreach (char c in letters)
+    {
+        Console.Write(c + (" "));
     }
 }
+
+bool CheckLetter (string word , char symbol)
+{
+    return word.Contains(symbol);
+}
+    
+
+void DisplayResult(int wrongAttempts, char[] letters)
+{
+    if (wrongAttempts >= MaxLives)
+    {
+        Console.WriteLine("\nТИ ЛОХ\nThe word is " + word);
+    }
+    else if (!letters.Contains('_'))
+    {
+        Console.WriteLine("\nПеремога!!!!!!!!!!!!!!!!!!!");
+    }
+}
+    
